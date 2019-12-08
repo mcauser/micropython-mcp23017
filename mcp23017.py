@@ -24,7 +24,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-__version__ = '0.1.3'
+__version__ = '0.1.4'
 
 # register addresses in port=0, bank=1 mode (easier maths to convert)
 _MCP_IODIR        = const(0x00) # R/W I/O Direction Register
@@ -261,6 +261,18 @@ class MCP23017():
             port._flip_property_bit('default_value', default_value & 1, bit)
         if value is None:
             return port.gpio & bit == bit
+
+    def interrupt_triggered_gpio(self, port):
+        # which gpio triggered the interrupt
+        # only 1 bit will be set
+        port = self.portb if port else self.porta
+        return port.interrupt_flag
+
+    def interrupt_captured_gpio(self, port):
+        # captured gpio values at time of int
+        # reading this will clear the current interrupt
+        port = self.portb if port else self.porta
+        return port.interrupt_captured
 
     # mode (IODIR register)
     @property

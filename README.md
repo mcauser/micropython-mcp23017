@@ -101,6 +101,17 @@ All of the other optional arguments are booleans.
 pin(pin, mode=None, value=None, pullup=None, polarity=None, interrupt_enable=None, interrupt_compare_default=None, default_value=None)
 ```
 
+After an interrupt fires, this method tells you which pin triggered it and clears the interrupt so it can fire again.
+It's port specific as there are port specific interrupts.
+```python
+interrupt_triggered_gpio(port)
+```
+
+This method tells you the state of the GPIO register at the time the interrupt fired.
+```python
+interrupt_captured_gpio(port)
+```
+
 Private method for toggling a bit in a value based on a condition.
 ```python
 _flip_bit(value, condition, bit)
