@@ -18,7 +18,9 @@ VIN     | 3V3
 GND     | GND
 
 MCP23017 | TinyPICO
--------- | --------
+-------- | ------------
+SCL      | GPIO22 (SCL)
+SDA      | GPIO21 (SDA)
 INTA     | GPIO4
 VIN      | 3V3
 GND      | GND

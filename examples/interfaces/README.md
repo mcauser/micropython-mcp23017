@@ -24,7 +24,7 @@ mcp[3].output(value=0)
 
 Each VirtualPin has a reference to it's port and knows which bit it represents.
 
-# Method Interface
+## Method Interface
 
 The pin method is used to configure a single pin.
 Using it's optional arguments, all features of the device are configurable.

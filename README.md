@@ -41,7 +41,8 @@ mcp.portb.gpio = 0x02
 
 For more detailed examples, see [examples](/examples).
 
-#### Pins
+
+## Pins
 
 Pin   | Type | Description
 :----:|:----:|:----------------------------------------
@@ -74,113 +75,98 @@ SCK   | I    | I2C Serial Clock - SPI Serial Clock (SCK) on the SPI version
 SI    | I    | I2C Serial Data - SPI Serial Data In (MOSI) on the SPI version
 SO    | O    | Not used - SPI Serial Data Out (MISO) on the SPI version
 
+
 ## Methods
+
+### __init__(i2c, address=0x20)
 
 Construct with a reference to I2C and set the device address (0x20-0x27).
 If are you not sure what it is, run an `i2c.scan()`.
-```python
-__init__(i2c, address=0x20)
-```
+
+### init()
 
 Initialises the device.
-```python
-init()
-```
+
+### config(interrupt_polarity=None, interrupt_open_drain=None, sda_slew=None, sequential_operation=None, interrupt_mirror=None, bank=None)
 
 Configures the device by writing to the iocon register.
-```python
-config(interrupt_polarity=None, interrupt_open_drain=None, sda_slew=None, sequential_operation=None, interrupt_mirror=None, bank=None)
-```
+
+### pin(pin, mode=None, value=None, pullup=None, polarity=None, interrupt_enable=None, interrupt_compare_default=None, default_value=None)
 
 Method for getting, setting or configuring a single pin.
 If no value is provided, the port will read the value from the GPIO register and return for the current pin.
 If a value is provided, the port will write the value to the GPIO register.
 Valid pin range 0-15.
 All of the other optional arguments are booleans.
-```python
-pin(pin, mode=None, value=None, pullup=None, polarity=None, interrupt_enable=None, interrupt_compare_default=None, default_value=None)
-```
+
+### interrupt_triggered_gpio(port)
 
 After an interrupt fires, this method tells you which pin triggered it and clears the interrupt so it can fire again.
 It's port specific as there are port specific interrupts.
-```python
-interrupt_triggered_gpio(port)
-```
+
+### interrupt_captured_gpio(port)
 
 This method tells you the state of the GPIO register at the time the interrupt fired.
-```python
-interrupt_captured_gpio(port)
-```
+
+### _flip_bit(value, condition, bit)
 
 Private method for toggling a bit in a value based on a condition.
-```python
-_flip_bit(value, condition, bit)
-```
+
+### __getitem__(pin)
 
 Provides the list interface for interacting with "virtual pins".
-```python
-__getitem__(pin)
-```
+
 
 ## Virtual pin methods
 
+### __init__(pin, port)
+
 Constructed with a specific pin (0-7) and the port it belongs to.
-```python
-__init__(pin, port)
-```
+
+### _flip_bit(value, condition)
 
 Private method for toggling a bit in a value based on a condition.
-```python
-_flip_bit(value, condition):
-```
+
+### _get_bit(value)
 
 Private method for getting a single bit from the given value based on the current pin
-```python
-_get_bit(value):
-```
+
+### value(val=None)
 
 Reads or writes the current pins value (0-1).
-```python
-value(val=None):
-```
+
+### input(pull=None)
 
 Configures the pin as input and optionally configures it to be pulled up.
-```python
-input(pull=None):
-```
+
+### output(val=None)
 
 Configures the pin to be output and optionally sets it's value (0-1).
-```python
-output(val=None):
-```
+
 
 ## Port methods
 
+### __init__(port, mcp)
+
 Constructed with the port number (0-1) and a reference to the main class.
-```python
-__init__(port, mcp)
-```
+
+### _which_reg(reg)
 
 Private method for calculating which register to write to as their address
 can change when configured to use different addressing scheme (iocon.bank).
-```python
-_which_reg(reg)
-```
+
+### _flip_property_bit(reg, condition, bit)
 
 Private method for toggling a bit in a register based on a condition.
-```python
-_flip_property_bit(reg, condition, bit)
-```
+
+### _read(reg)
 
 Private method for reading the register over I2C.
-```python
-_read(reg)
-```
+
+### _write(reg, val)
 
 Private method for writing to the register over I2C.
-```python
-_write(reg, val)
-```
+
 
 ## Properties
 
@@ -196,7 +182,7 @@ You can also get and set on the ports a and b directly with 8-bit integers.
 The registers accessible using the property interface are:
 
 Property                  | Register | Type | Description
-------------------------- | -------- | ---- | -----------------------------------------------
+:------------------------ |:-------- |:---- |:-----------------------------------------------
 mode                      | iodir    | R/W  | Direction 0=output, 1=input
 input_polarity            | ipol     | R/W  | Input polarity 0=normal, 1=invert
 interrupt_enable          | gpinten  | R/W  | Interrupt enable 0=disabled, 1=enabled
@@ -208,6 +194,7 @@ interrupt_flag            | intf     | R    | Interrupt flag 1=this pin triggere
 interrupt_captured        | intcap   | R    | Interrupt captured - state of pins at interrupt
 gpio                      | gpio     | R/W  | General purpose IO
 output_latch              | olat     | R/W  | Output latch - which output pins are high
+
 
 Getter on the main class reads the GPIO register and returns a 16-bit integer.
 The lower 8 bits represent port a.
@@ -257,7 +244,7 @@ Work on both 3V3 or 5V logic.
 
 ## Interrupts
 
-Two independent interrupts, one for each 8-bit port, which can be linked/mirrored in software so that any pin change triggers both.
+Two independent interrupts, one for each 8-bit port, which can be linked/mirrored using `interrupt_mirror` config, so that any pin change triggers both.
 
 Interrupt can be configured to watch any specific pins and fire on pin change or when the pin differs from the defaults you set.
 
@@ -273,7 +260,7 @@ There are three address select pins (A0,A1,A2) providing addresses 0x20-0x27 for
 Requires 10k pull-up resistors on the SCL + SDA lines.
 
 A0  | A1  | A2  | I2C Address
-----|-----|-----|------------
+:---|:----|:----|:-----------
 GND | GND | GND | 0x20
 3V3 | GND | GND | 0x21
 GND | 3V3 | GND | 0x22
