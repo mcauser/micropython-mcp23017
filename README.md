@@ -21,7 +21,7 @@ mcp[3].output(0)
 
 # method interface
 mcp.pin(0, mode=1)
-mcp.pin(1, mode=1, pull=True)
+mcp.pin(1, mode=1, pullup=True)
 mcp.pin(1)
 mcp.pin(2, mode=0, value=1)
 mcp.pin(3, mode=0, value=0)

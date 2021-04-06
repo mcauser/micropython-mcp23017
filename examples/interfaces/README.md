@@ -14,9 +14,9 @@ Custom getter which gives you one of 16 "VirtualPin" objects, each representing 
 ```python
 # list interface
 mcp[0].input()
-mcp[1].input(pullup=1)
-mcp[1].input(pullup=1, polarity=1)
-mcp[1].input(pullup=1, interrupt_enable=1)
+mcp[1].input(pull=1)
+mcp[1].input(pull=1, polarity=1)
+mcp[1].input(pull=1, interrupt_enable=1)
 mcp[1].value()
 mcp[2].output(value=1)
 mcp[3].output(value=0)
