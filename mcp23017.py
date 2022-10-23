@@ -380,6 +380,8 @@ class VirtualPin():
         self._pin = pin % 8
         self._bit = 1 << self._pin
         self._port = port
+    def __call__(self):
+        return self.value()
 
     def _flip_bit(self, value, condition):
         return value | self._bit if condition else value & ~self._bit
