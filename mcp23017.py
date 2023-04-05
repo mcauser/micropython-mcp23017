@@ -396,6 +396,10 @@ class VirtualPin():
         else:
             return self._get_bit(self._port.gpio)
 
+    def toggle(self):
+        if self._get_bit(self._port.mode) == 0:
+            self._port.gpio = self._flip_bit(self._port.gpio, 1 - self._get_bit(self._port.gpio))
+
     def input(self, pull=None):
         # if pull, enable pull up, else read
         self._port.mode = self._flip_bit(self._port.mode, 1) # mode = input
