@@ -332,12 +332,24 @@ class MCP2301X():
         self.portb.output_latch = (val >> 8)
 
     # list interface
-    # mcp[pin] lazy creates a VirtualPin(pin, port)
-    def __getitem__(self, pin):
-        assert 0 <= pin <= 15
-        if not pin in self._virtual_pins:
+    def _get_pin_item(self, pin):
+        if pin not in self._virtual_pins:
             self._virtual_pins[pin] = VirtualPin(pin, self.portb if pin // 8 else self.porta)
         return self._virtual_pins[pin]
+
+    def _rslice(self, pin):
+        assert any(0 <= x < 16 for x in range(pin.start, pin.stop))
+        ret = []
+        for x in range(pin.start, pin.stop):
+            ret.append(self._get_pin_item(x))
+        return ret
+        
+    # mcp[pin] lazy creates a VirtualPin(pin, port)
+    def __getitem__(self, pin):
+        if isinstance(pin, slice):
+            return self._rslice(pin)
+        assert pin in range(0, 16)
+        return self._get_pin_item(pin)
 
 class MCP23017(MCP2301X):
     def __init__(self, i2c, address=0x20):
