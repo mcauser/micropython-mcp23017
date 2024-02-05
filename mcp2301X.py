@@ -40,6 +40,7 @@ _MCP_GPIO         = const(0x09) # R/W General Purpose I/O Port Register
 _MCP_OLAT         = const(0x0a) # R/W Output Latch Register
 
 # Config register (IOCON) bits
+_MCP_IOCON_INTCC  = const(1)
 _MCP_IOCON_INTPOL = const(2)
 _MCP_IOCON_ODR    = const(4)
 # _MCP_IOCON_HAEN = const(8) # no used - for spi flavour of this chip
@@ -156,7 +157,7 @@ class Port():
         self._write(_MCP_OLAT, val)
 
 
-class MCP23017():
+class MCP2301X():
     def __init__(self, i2c, address=0x20):
         self._i2c = i2c
         self._address = address
@@ -182,43 +183,6 @@ class MCP23017():
         self.interrupt_compare_default = 0x0000  # int on change control (0=compare to prev val, 1=compare to def val)
         self.pullup = 0x0000                     # gpio weak pull up resistor - when configured as input (0=disabled, 1=enabled)
         self.gpio = 0x0000                       # port (0=logic low, 1=logic high)
-
-    def config(self, interrupt_polarity=None, interrupt_open_drain=None, sda_slew=None, sequential_operation=None, interrupt_mirror=None, bank=None):
-        io_config = self.porta.io_config
-
-        if interrupt_polarity is not None:
-            # configre INT as push-pull
-            # 0: Active low
-            # 1: Active high
-            io_config = self._flip_bit(io_config, interrupt_polarity, _MCP_IOCON_INTPOL)
-            if interrupt_polarity:
-                # if setting to 1, unset ODR bit - interrupt_open_drain
-                interrupt_open_drain = False
-        if interrupt_open_drain is not None:
-            # configure INT as open drain, overriding interrupt_polarity
-            # 0: INTPOL sets the polarity
-            # 1: Open drain, INTPOL ignored
-            io_config = self._flip_bit(io_config, interrupt_open_drain, _MCP_IOCON_ODR)
-        if sda_slew is not None:
-            # 0: Slew rate function on SDA pin enabled
-            # 1: Slew rate function on SDA pin disabled
-            io_config = self._flip_bit(io_config, sda_slew, _MCP_IOCON_DISSLW)
-        if sequential_operation is not None:
-            # 0: Enabled, address pointer increments
-            # 1: Disabled, address pointer fixed
-            io_config = self._flip_bit(io_config, sequential_operation, _MCP_IOCON_SEQOP)
-        if interrupt_mirror is not None:
-            # 0: Independent INTA,INTB pins
-            # 1: Internally linked INTA,INTB pins
-            io_config = self._flip_bit(io_config, interrupt_mirror, _MCP_IOCON_MIRROR)
-        if bank is not None:
-            # 0: Registers alternate between A and B ports
-            # 1: All port A registers first then all port B
-            io_config = self._flip_bit(io_config, bank, _MCP_IOCON_BANK)
-
-        # both ports share the same register, so you only need to write on one
-        self.porta.io_config = io_config
-        self._config = io_config
 
     def _flip_bit(self, value, condition, bit):
         if condition:
@@ -374,6 +338,89 @@ class MCP23017():
         if not pin in self._virtual_pins:
             self._virtual_pins[pin] = VirtualPin(pin, self.portb if pin // 8 else self.porta)
         return self._virtual_pins[pin]
+
+class MCP23017(MCP2301X):
+    def __init__(self, i2c, address=0x20):
+        super().__init__(i2c, address)
+
+    def config(self, interrupt_polarity=None, interrupt_open_drain=None, sda_slew=None, sequential_operation=None, interrupt_mirror=None, bank=None):
+        io_config = self.porta.io_config
+
+        if interrupt_polarity is not None:
+            # configre INT as push-pull
+            # 0: Active low
+            # 1: Active high
+            io_config = self._flip_bit(io_config, interrupt_polarity, _MCP_IOCON_INTPOL)
+            if interrupt_polarity:
+                # if setting to 1, unset ODR bit - interrupt_open_drain
+                interrupt_open_drain = False
+        if interrupt_open_drain is not None:
+            # configure INT as open drain, overriding interrupt_polarity
+            # 0: INTPOL sets the polarity
+            # 1: Open drain, INTPOL ignored
+            io_config = self._flip_bit(io_config, interrupt_open_drain, _MCP_IOCON_ODR)
+        if sda_slew is not None:
+            # 0: Slew rate function on SDA pin enabled
+            # 1: Slew rate function on SDA pin disabled
+            io_config = self._flip_bit(io_config, sda_slew, _MCP_IOCON_DISSLW)
+        if sequential_operation is not None:
+            # 0: Enabled, address pointer increments
+            # 1: Disabled, address pointer fixed
+            io_config = self._flip_bit(io_config, sequential_operation, _MCP_IOCON_SEQOP)
+        if interrupt_mirror is not None:
+            # 0: Independent INTA,INTB pins
+            # 1: Internally linked INTA,INTB pins
+            io_config = self._flip_bit(io_config, interrupt_mirror, _MCP_IOCON_MIRROR)
+        if bank is not None:
+            # 0: Registers alternate between A and B ports
+            # 1: All port A registers first then all port B
+            io_config = self._flip_bit(io_config, bank, _MCP_IOCON_BANK)
+
+        # both ports share the same register, so you only need to write on one
+        self.porta.io_config = io_config
+        self._config = io_config
+
+class MCP23018(MCP2301X):
+    def __init__(self, i2c, address=0x20):
+        super().__init__(i2c, address)
+
+    def config(self, interrupt_clear_control=None, interrupt_polarity=None, interrupt_open_drain=None, sequential_operation=None, interrupt_mirror=None, bank=None):
+        io_config = self.porta.io_config
+
+        if interrupt_clear_control is not None:
+            # Interrupt Clearing Control
+            # 0: Reading GPIO register clears the interrup
+            # 1: Reading INTCAP register clears the interrupt
+            io_config = self._flip_bit(io_config, interrupt_clear_control, _MCP_IOCON_INTCC)
+        if interrupt_polarity is not None:
+            # Sets the polarity of the INT output pin.
+            # 0: Active low
+            # 1: Active high
+            io_config = self._flip_bit(io_config, interrupt_polarity, _MCP_IOCON_INTPOL)
+            if interrupt_polarity:
+                # if setting to 1, unset ODR bit - interrupt_open_drain
+                interrupt_open_drain = False
+        if interrupt_open_drain is not None:
+            # configure INT as open drain, overriding interrupt_polarity
+            # 0: INTPOL sets the polarity
+            # 1: Open drain, INTPOL ignored
+            io_config = self._flip_bit(io_config, interrupt_open_drain, _MCP_IOCON_ODR)
+        if sequential_operation is not None:
+            # 0: Enabled, address pointer increments
+            # 1: Disabled, address pointer fixed
+            io_config = self._flip_bit(io_config, sequential_operation, _MCP_IOCON_SEQOP)
+        if interrupt_mirror is not None:
+            # 0: Independent INTA,INTB pins
+            # 1: Internally linked INTA,INTB pins
+            io_config = self._flip_bit(io_config, interrupt_mirror, _MCP_IOCON_MIRROR)
+        if bank is not None:
+            # 0: Registers alternate between A and B ports
+            # 1: All port A registers first then all port B
+            io_config = self._flip_bit(io_config, bank, _MCP_IOCON_BANK)
+
+        # both ports share the same register, so you only need to write on one
+        self.porta.io_config = io_config
+        self._config = io_config
 
 class VirtualPin():
     def __init__(self, pin, port):
